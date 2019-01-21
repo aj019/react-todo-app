@@ -131,4 +131,87 @@ app.listen(port, () => {
 
 ## Creating Frontend
 
+17. In root directory run create-react-app client
+18. npm install concurrently
+19. Update the package.json of your root folder with the following
+```
+{
+  "name": "react-todo-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "concurrently \"yarn run start\" \"cd client && yarn start\""
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "dotenv": "^6.2.0",
+    "express": "^4.16.4",
+    "mongoose": "^5.4.4",
+    "path": "^0.12.7"
+  },
+  "devDependencies": {
+    "concurrently": "^4.0.1",
+    "nodemon": "^1.18.4"
+    }
+
+}
+```
+20. Add "proxy": "http://localhost:5000" in your client/package.json to support relative urls
+
+```
+{
+  "name": "client",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "axios": "^0.18.0",
+    "react": "^16.7.0",
+    "react-dom": "^16.7.0",
+    "react-scripts": "2.1.3",
+    "styled-components": "^4.1.3"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "proxy": "http://localhost:5050",
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ]
+}
+```
+21. In your client folder open up your src folder and delete App.* files
+22. Create a folder called components with file Todo.js
+23. Modify index.js as follows
+
+```
+import React from 'react';
+import ReactDOM from 'react-dom';
+import './index.css';
+import Todo from './components/Todo';
+import * as serviceWorker from './serviceWorker';
+
+ReactDOM.render(<Todo />, document.getElementById('root'));
+
+// If you want your app to work offline and load faster, you can change
+// unregister() to register() below. Note this comes with some pitfalls.
+// Learn more about service workers: http://bit.ly/CRA-PWA
+serviceWorker.unregister();
+```
+
+
+
 
