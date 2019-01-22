@@ -1,13 +1,25 @@
 import React, { Component } from 'react'
 import TodoItem from './TodoItem'
+import {connect} from 'react-redux'
+import { bindActionCreators } from 'redux';
+import fetch_actions from '../actions';
 
-const actions = [
-    {'_id':1,'action':'Action 1'},
-    {'_id':2,'action':'Action 2'}
-]
-
-export default class ListTodos extends Component {
+class ListTodos extends Component {
+  componentDidMount(){
+      this.props.fetchActions();
+  }  
   render() {
+      let {actions} = this.props.todos;
     return actions.map(act => <TodoItem key={act._id} text={act.action} />);
   }
 }
+
+const mapStateToProps  = state => ({
+    todos: state.todos
+});
+
+const mapDispatchToProps  = dispatch => {
+    return bindActionCreators({fetchActions: fetch_actions},dispatch)
+}
+
+export default connect(mapStateToProps,mapDispatchToProps)(ListTodos);
