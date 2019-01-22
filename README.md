@@ -193,24 +193,246 @@ app.listen(port, () => {
   ]
 }
 ```
-21. In your client folder open up your src folder and delete App.* files
+21. In your client folder open up your src folder
 22. Create a folder called components with file Todo.js
-23. Modify index.js as follows
+
+## Setting up Redux
+
+23. In your client/ npm i redux react-redux redux-saga styled-components axios
+24. In your client/src folder create a folder called components
+25. Create a file called Home.js 
+25. In your App.js 
 
 ```
-import React from 'react';
-import ReactDOM from 'react-dom';
-import './index.css';
-import Todo from './components/Todo';
-import * as serviceWorker from './serviceWorker';
+import React, { Component } from 'react';
+import Home from './components/Home';
+import './App.css';
 
-ReactDOM.render(<Todo />, document.getElementById('root'));
+class App extends Component {
+  render() {
+    return (
+      <Home />
+    );
+  }
+}
 
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: http://bit.ly/CRA-PWA
-serviceWorker.unregister();
+export default App;
 ```
+### Create Store
+
+In your src folder create three folders reducers, actions and sagas
+In reducers create 2 files index.js and TodoReducer.js
+
+#### TodoReducer.js
+```
+const initialState = {
+
+}
+
+export default function(state = initialState, action) {
+    switch(action.type){
+        default:
+        break;
+    }
+}
+```
+#### index.js
+```
+import {combineReducers} from 'redux'
+import TodoReducer from './TodoReducer'
+
+
+export const rootReducer = combineReducers({
+    todos: TodoReducer
+})
+```
+In src/saga folder create index.js file 
+```
+import { call, put, takeEvery, takeLatest } from 'redux-saga/effects'
+
+function* mySaga() {
+}
+
+export default mySaga;
+```
+
+Update your App.js file as follows
+```
+import React, { Component } from 'react';
+import { createStore, applyMiddleware } from 'redux';
+import {Provider} from 'react-redux';
+import Home from './components/Home';
+import rootReducer from './reducers'
+import './App.css';
+import createSagaMiddleware from 'redux-saga'
+import mySaga from './sagas'
+
+// create the saga middleware
+const sagaMiddleware = createSagaMiddleware();
+const store = createStore(rootReducer, {}, applyMiddleware(sagaMiddleware));
+sagaMiddleware.run(mySaga);
+
+class App extends Component {
+  render() {
+    return (
+     <Provider store={store}>
+      <Home />
+      </Provider>  
+    );
+  }
+}
+
+export default App;
+```
+
+## Building the UI
+
+In the src/components make 4 more files Home.js , TodoItem.js, ListTodos.js , AddTodos.js
+
+### Home.js
+
+```
+import React, { Component } from 'react';
+import styled from 'styled-components';
+import AddTodos from './AddTodos'
+import ListTodos from './ListTodos'
+
+
+const MainWrapper = styled.div`
+    width: 100%;
+    height: 100%;
+    display: flex;
+    background-color: #000;
+    flex-direction: column;
+    align-items: center;
+  `
+
+const StyledHeading = styled.h1`
+  color: #fff;
+`  
+
+export default class Home extends Component {
+  render() {
+    return (
+      <MainWrapper>
+        <StyledHeading>My Todo App</StyledHeading>
+        <AddTodos />
+        <ListTodos />
+      </MainWrapper>
+    )
+  }
+}
+```
+
+### Addtodos.js
+```
+import React, { Component } from 'react'
+import styled from 'styled-components'
+
+const OuterWrapper = styled.div`
+    width: 100%;
+    display:flex;
+    justify-content: center;
+`;
+
+const StyledInput = styled.input`
+    width: 70%;
+    padding: 20px;
+    border: 1px solid black;
+    border-radius: 10px;
+`;
+
+const StyledButton = styled.button`
+    width: 10%;
+    color: white;
+    background-color: #5b73a7;
+    border: none;
+    border-radius: 10px;
+    margin-left: 10px;
+`
+
+
+export default class AddTodos extends Component {
+  render() {
+    return (
+     <OuterWrapper>
+        <StyledInput />
+        <StyledButton>Add</StyledButton>
+      </OuterWrapper>   
+    )
+  }
+}
+```
+
+### TodoItem.js
+```
+import React, { Component } from 'react'
+import styled from 'styled-components'
+
+const ItemWrapper = styled.div`
+    width:80%;
+    background-color: #3d6fe9;
+    border-radius: 10px;
+    padding: 10px;
+    margin-top: 20px;
+    display:flex;
+    flex-direction:row;
+`
+
+const StyledCheckbox = styled.input`
+    margin: 10px;
+`
+
+const StyledText = styled.p`
+    margin: 8px;
+    color: #fff;
+    width:90%;
+`
+
+const StyledButton = styled.button`
+    width: 10%;
+    color: white;
+    background-color: #5b73a7;
+    border: 1px solid white;
+    border-radius: 10px;
+    margin-left: 10px;
+`
+
+export default class TodoItem extends Component {
+  render() {
+    let {text} = this.props;  
+    return (
+      <ItemWrapper>
+          <StyledCheckbox type="checkbox" />
+          <StyledText>{text}</StyledText>
+          <StyledButton>Delete</StyledButton>
+      </ItemWrapper>
+    )
+  }
+}
+```
+### ListTodos.js
+```
+import React, { Component } from 'react'
+import TodoItem from './TodoItem'
+
+const actions = [
+    {'_id':1,'action':'Action 1'},
+    {'_id':2,'action':'Action 2'}
+]
+
+export default class ListTodos extends Component {
+  render() {
+    return actions.map(act => <TodoItem key={act._id} text={act.action} />);
+  }
+}
+```
+
+
+
+
+
+
 
 
 
