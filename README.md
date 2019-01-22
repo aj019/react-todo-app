@@ -427,11 +427,108 @@ export default class ListTodos extends Component {
   }
 }
 ```
+## Fetching Data from Api
 
+In your constants.js file
+```
+export const FETCH_ACTIONS = 'FETCH_ACTIONS';
+export const FETCH_ACTIONS_SUCCESS = 'FETCH_ACTIONS_SUCCESS';
+export const FETCH_ACTIONS_FAILURE = 'FETCH_ACTIONS_FAILURE';
+```
 
+In your actions/index.js
+```
+import {FETCH_ACTIONS} from './constants'
 
+export default function fetch_actions(){
+    return {
+        type: FETCH_ACTIONS,
+    }
+}
+```
+In your saga/index.js
+```
+import { call, put, takeLatest } from 'redux-saga/effects'
+import {FETCH_ACTIONS,FETCH_ACTIONS_SUCCESS,FETCH_ACTIONS_FAILURE} from '../actions/constants'
+import axios from 'axios'
 
+function fetchActionsFromApi(){
+    return axios.get('/api/todos');
+            
+}
 
+function* fetchActions(){
+    
+    try {
+        const response = yield call(fetchActionsFromApi)
+
+        yield put({'type':FETCH_ACTIONS_SUCCESS,'payload':response.data})
+    } catch(e){
+        
+        yield put({'type': FETCH_ACTIONS_FAILURE})
+    }
+}
+
+function* mySaga() {
+    yield takeLatest(FETCH_ACTIONS,fetchActions);
+}
+
+export default mySaga;
+```
+In TodoReducer.js
+
+```
+import {FETCH_ACTIONS_SUCCESS, FETCH_ACTIONS_FAILURE} from '../actions/constants'
+
+const initialState = {
+    actions: []
+}
+
+export default function(state = initialState, action) {
+    switch(action.type){
+
+        case FETCH_ACTIONS_SUCCESS:
+            console.log('REduceer',{...state,actions: action.payload})
+            return {...state,actions: action.payload}
+        
+        case FETCH_ACTIONS_FAILURE:
+            return state;    
+
+        default:
+        return state;
+        
+    }
+}
+```
+In ListTodo.js
+
+```
+import React, { Component } from 'react'
+import TodoItem from './TodoItem'
+import {connect} from 'react-redux'
+import { bindActionCreators } from 'redux';
+import fetch_actions from '../actions';
+
+class ListTodos extends Component {
+  componentDidMount(){
+      this.props.fetchActions();
+  }  
+  render() {
+      let {actions} = this.props.todos;
+    return actions.map(act => <TodoItem key={act._id} text={act.action} />);
+  }
+}
+
+const mapStateToProps  = state => ({
+    todos: state.todos
+});
+
+const mapDispatchToProps  = dispatch => {
+    return bindActionCreators({fetchActions: fetch_actions},dispatch)
+}
+
+export default connect(mapStateToProps,mapDispatchToProps)(ListTodos);
+```
 
 
 
