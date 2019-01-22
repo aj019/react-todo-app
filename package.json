@@ -4,9 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js",
+    "server": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "concurrently \"yarn run start\" \"cd client && yarn start\""
+    "client": "npm start --prefix client",
+    "dev": "concurrently \"npm run server\" \"npm run client\" "
   },
   "author": "",
   "license": "ISC",
