@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import TodoItem from './TodoItem'
 import {connect} from 'react-redux'
 import { bindActionCreators } from 'redux';
-import fetch_actions from '../actions';
+import {fetch_actions} from '../actions';
 
 class ListTodos extends Component {
   componentDidMount(){
