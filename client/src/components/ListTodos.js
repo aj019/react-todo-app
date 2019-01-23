@@ -10,7 +10,7 @@ class ListTodos extends Component {
   }  
   render() {
       let {actions} = this.props.todos;
-    return actions.map(act => <TodoItem key={act._id} text={act.action} />);
+    return actions.map(act => <TodoItem key={act._id} id={act._id} text={act.action} />);
   }
 }
 

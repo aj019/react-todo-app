@@ -1,5 +1,5 @@
 import { call, put, takeLatest } from 'redux-saga/effects'
-import {FETCH_ACTIONS,FETCH_ACTIONS_SUCCESS,FETCH_ACTIONS_FAILURE,ADD_ACTION, ADD_ACTION_REQUEST} from '../actions/constants'
+import {FETCH_ACTIONS,FETCH_ACTIONS_SUCCESS,FETCH_ACTIONS_FAILURE,ADD_ACTION,DELETE_ACTION_REQUEST,DELETE_ACTION,ADD_ACTION_REQUEST} from '../actions/constants'
 import axios from 'axios'
 
 function fetchActionsFromApi(){
@@ -8,6 +8,10 @@ function fetchActionsFromApi(){
 
 function addActionToDatabase(text){
     return axios.post('/api/todos',{'action':text})
+}
+
+function deleteActionFromDatabase(id){
+    return axios.delete(`/api/todos/${id}`)
 }
 
 function* fetchActions(){
@@ -33,9 +37,21 @@ function* addAction(action){
 
 }
 
+function* deleteAction(action){
+
+    try{
+        const response = yield call(deleteActionFromDatabase,action.payload);
+        yield put({type: DELETE_ACTION,payload: response.data})
+    } catch(e){
+        yield put({'type':FETCH_ACTIONS_FAILURE})
+    }
+
+}
+
 function* mySaga() {
     yield takeLatest(FETCH_ACTIONS,fetchActions);
     yield takeLatest(ADD_ACTION_REQUEST,addAction)
+    yield takeLatest(DELETE_ACTION_REQUEST,deleteAction)
 }
 
 export default mySaga;

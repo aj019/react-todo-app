@@ -1,5 +1,7 @@
 import React, { Component } from 'react'
 import styled from 'styled-components'
+import {connect} from 'react-redux'
+import {delete_action} from '../actions'
 
 const ItemWrapper = styled.div`
     width:80%;
@@ -30,15 +32,23 @@ const StyledButton = styled.button`
     margin-left: 10px;
 `
 
-export default class TodoItem extends Component {
+class TodoItem extends Component {
+
   render() {
-    let {text} = this.props;  
+    let {text,id} = this.props;  
     return (
       <ItemWrapper>
           <StyledCheckbox type="checkbox" />
           <StyledText>{text}</StyledText>
-          <StyledButton>Delete</StyledButton>
+          <StyledButton onClick={() => this.props.delete_action(id)}>Delete</StyledButton>
       </ItemWrapper>
     )
   }
 }
+
+const mapDispatchToProps = dispatch => ({
+    delete_action: (id) => dispatch(delete_action(id))
+})
+
+
+export default connect(null,mapDispatchToProps)(TodoItem);
