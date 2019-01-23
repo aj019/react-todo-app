@@ -529,8 +529,171 @@ const mapDispatchToProps  = dispatch => {
 
 export default connect(mapStateToProps,mapDispatchToProps)(ListTodos);
 ```
+## Adding data to Database using Api
+
+### constants.js
+```
+export const FETCH_ACTIONS = 'FETCH_ACTIONS';
+export const FETCH_ACTIONS_SUCCESS = 'FETCH_ACTIONS_SUCCESS';
+export const FETCH_ACTIONS_FAILURE = 'FETCH_ACTIONS_FAILURE';
+export const ADD_ACTION_REQUEST = 'ADD_ACTION_REQUEST';
+export const ADD_ACTION = 'ADD_ACTION';
+```
+### actions/index.js
+```
+import {FETCH_ACTIONS, ADD_ACTION_REQUEST} from './constants'
+
+export const fetch_actions = () =>{
+    return {
+        type: FETCH_ACTIONS,
+    }
+}
+
+export const add_action = (text) => {
+    return {
+        type: ADD_ACTION_REQUEST,
+        payload: text
+    }
+}
+```
+
+### AddTodo.js
+```
+import React, { Component } from 'react'
+import styled from 'styled-components'
+import {connect} from 'react-redux'
+import {add_action} from '../actions'
+const OuterWrapper = styled.div`
+    width: 100%;
+    display:flex;
+    justify-content: center;
+`;
+
+const StyledInput = styled.input`
+    width: 70%;
+    padding: 20px;
+    border: 1px solid black;
+    border-radius: 10px;
+`;
+
+const StyledButton = styled.button`
+    width: 10%;
+    color: white;
+    background-color: #5b73a7;
+    border: none;
+    border-radius: 10px;
+    margin-left: 10px;
+`
 
 
+class AddTodos extends Component {
+
+    state = {
+        text: ''
+    }
+
+   handleChange = (e) =>{
+       this.setState({
+           text: e.target.value
+       })
+   } 
+
+   onAddClicked = () => {
+        console.log('Add', this.state.text)
+        //Dispatch Action
+        this.props.add_action(this.state.text);
+   }
+
+  render() {
+    return (
+     <OuterWrapper>
+        <StyledInput onChange={this.handleChange} />
+        <StyledButton onClick={this.onAddClicked} >Add</StyledButton>
+      </OuterWrapper>   
+    )
+  }
+}
+
+const mapDispatchToProps =  dispatch => ({
+    add_action: (text) => dispatch(add_action(text))
+})
+
+export default connect(null,mapDispatchToProps)(AddTodos)
+```
+
+### sagas/index.js
+```
+import { call, put, takeLatest } from 'redux-saga/effects'
+import {FETCH_ACTIONS,FETCH_ACTIONS_SUCCESS,FETCH_ACTIONS_FAILURE,ADD_ACTION, ADD_ACTION_REQUEST} from '../actions/constants'
+import axios from 'axios'
+
+function fetchActionsFromApi(){
+    return axios.get('/api/todos');           
+}
+
+function addActionToDatabase(text){
+    return axios.post('/api/todos',{'action':text})
+}
+
+function* fetchActions(){
+    
+    try {
+        const response = yield call(fetchActionsFromApi)
+
+        yield put({'type':FETCH_ACTIONS_SUCCESS,'payload':response.data})
+    } catch(e){
+        
+        yield put({'type': FETCH_ACTIONS_FAILURE})
+    }
+}
+
+function* addAction(action){
+
+    try{
+        const response = yield call(addActionToDatabase,action.payload);
+        yield put({type: ADD_ACTION,payload: response.data})
+    } catch(e){
+        yield put({'type':FETCH_ACTIONS_FAILURE})
+    }
+
+}
+
+function* mySaga() {
+    yield takeLatest(FETCH_ACTIONS,fetchActions);
+    yield takeLatest(ADD_ACTION_REQUEST,addAction)
+}
+
+export default mySaga;
+```
+
+### TodoReducer.js
+```
+import {FETCH_ACTIONS_SUCCESS, FETCH_ACTIONS_FAILURE,ADD_ACTION} from '../actions/constants'
+
+const initialState = {
+    actions: []
+}
+
+export default function(state = initialState, action) {
+    switch(action.type){
+
+        case FETCH_ACTIONS_SUCCESS:
+            console.log('REduceer',{...state,actions: action.payload})
+            return {...state,actions: action.payload}
+        
+        case FETCH_ACTIONS_FAILURE:
+            return state;    
+
+        case ADD_ACTION:
+            console.log('Add action',{...state,actions: [...state.actions,action.payload]})
+            return {...state,actions: [...state.actions,action.payload]}
+
+        default:
+        return state;
+        
+    }
+}
+```
 
 
 
