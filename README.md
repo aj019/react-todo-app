@@ -694,6 +694,188 @@ export default function(state = initialState, action) {
     }
 }
 ```
+## Delete Action from Database using Api
+### constants.js
+```
+export const FETCH_ACTIONS = 'FETCH_ACTIONS';
+export const FETCH_ACTIONS_SUCCESS = 'FETCH_ACTIONS_SUCCESS';
+export const FETCH_ACTIONS_FAILURE = 'FETCH_ACTIONS_FAILURE';
+export const ADD_ACTION_REQUEST = 'ADD_ACTION_REQUEST';
+export const ADD_ACTION = 'ADD_ACTION';
+export const DELETE_ACTION_REQUEST = 'DELETE_ACTION_REQUEST';
+export const DELETE_ACTION = 'DELETE_ACTION';
+```
+### actions/index.js
+```
+import {FETCH_ACTIONS, ADD_ACTION_REQUEST, DELETE_ACTION_REQUEST} from './constants'
+
+export const fetch_actions = () =>{
+    return {
+        type: FETCH_ACTIONS,
+    }
+}
+
+export const add_action = (text) => {
+    return {
+        type: ADD_ACTION_REQUEST,
+        payload: text
+    }
+}
+
+export const delete_action = (id) => {
+    console.log('Delete action with id',id);
+    return {
+        type: DELETE_ACTION_REQUEST,
+        payload: id
+    }
+}
+```
+### TodoItem.js
+```
+import React, { Component } from 'react'
+import styled from 'styled-components'
+import {connect} from 'react-redux'
+import {delete_action} from '../actions'
+
+const ItemWrapper = styled.div`
+    width:80%;
+    background-color: #3d6fe9;
+    border-radius: 10px;
+    padding: 10px;
+    margin-top: 20px;
+    display:flex;
+    flex-direction:row;
+`
+
+const StyledCheckbox = styled.input`
+    margin: 10px;
+`
+
+const StyledText = styled.p`
+    margin: 8px;
+    color: #fff;
+    width:90%;
+`
+
+const StyledButton = styled.button`
+    width: 10%;
+    color: white;
+    background-color: #5b73a7;
+    border: 1px solid white;
+    border-radius: 10px;
+    margin-left: 10px;
+`
+
+class TodoItem extends Component {
+
+  render() {
+    let {text,id} = this.props;  
+    return (
+      <ItemWrapper>
+          <StyledCheckbox type="checkbox" />
+          <StyledText>{text}</StyledText>
+          <StyledButton onClick={() => this.props.delete_action(id)}>Delete</StyledButton>
+      </ItemWrapper>
+    )
+  }
+}
+
+const mapDispatchToProps = dispatch => ({
+    delete_action: (id) => dispatch(delete_action(id))
+})
 
 
+export default connect(null,mapDispatchToProps)(TodoItem);
+```
+### sagas/index.js
+```
+import { call, put, takeLatest } from 'redux-saga/effects'
+import {FETCH_ACTIONS,FETCH_ACTIONS_SUCCESS,FETCH_ACTIONS_FAILURE,ADD_ACTION,DELETE_ACTION_REQUEST,DELETE_ACTION,ADD_ACTION_REQUEST} from '../actions/constants'
+import axios from 'axios'
 
+function fetchActionsFromApi(){
+    return axios.get('/api/todos');           
+}
+
+function addActionToDatabase(text){
+    return axios.post('/api/todos',{'action':text})
+}
+
+function deleteActionFromDatabase(id){
+    return axios.delete(`/api/todos/${id}`)
+}
+
+function* fetchActions(){
+    
+    try {
+        const response = yield call(fetchActionsFromApi)
+
+        yield put({'type':FETCH_ACTIONS_SUCCESS,'payload':response.data})
+    } catch(e){
+        
+        yield put({'type': FETCH_ACTIONS_FAILURE})
+    }
+}
+
+function* addAction(action){
+
+    try{
+        const response = yield call(addActionToDatabase,action.payload);
+        yield put({type: ADD_ACTION,payload: response.data})
+    } catch(e){
+        yield put({'type':FETCH_ACTIONS_FAILURE})
+    }
+
+}
+
+function* deleteAction(action){
+
+    try{
+        const response = yield call(deleteActionFromDatabase,action.payload);
+        yield put({type: DELETE_ACTION,payload: response.data})
+    } catch(e){
+        yield put({'type':FETCH_ACTIONS_FAILURE})
+    }
+
+}
+
+function* mySaga() {
+    yield takeLatest(FETCH_ACTIONS,fetchActions);
+    yield takeLatest(ADD_ACTION_REQUEST,addAction)
+    yield takeLatest(DELETE_ACTION_REQUEST,deleteAction)
+}
+
+export default mySaga;
+```
+### TodoReducer.js
+```
+import {FETCH_ACTIONS_SUCCESS, FETCH_ACTIONS_FAILURE,ADD_ACTION, DELETE_ACTION} from '../actions/constants'
+
+const initialState = {
+    actions: []
+}
+
+export default function(state = initialState, action) {
+    switch(action.type){
+
+        case FETCH_ACTIONS_SUCCESS:
+            console.log('REduceer',{...state,actions: action.payload})
+            return {...state,actions: action.payload}
+        
+        case FETCH_ACTIONS_FAILURE:
+            return state;    
+
+        case ADD_ACTION:
+            console.log('Add action',{...state,actions: [...state.actions,action.payload]})
+            return {...state,actions: [...state.actions,action.payload]}
+
+        case DELETE_ACTION:
+             console.log('DELETE action',{...state,actions: state.actions.filter(act => act._id !== action.payload)})
+            return {...state,actions: state.actions.filter(act => act._id !== action.payload._id)}
+
+        default:
+        return state;
+        
+    }
+}
+```
