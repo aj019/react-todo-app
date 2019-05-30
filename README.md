@@ -234,6 +234,7 @@ export default function(state = initialState, action) {
         default:
         break;
     }
+    retutrn initialState;
 }
 ```
 #### index.js
